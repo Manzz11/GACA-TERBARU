@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi Gacha</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#020617;
+  color:#fff;
+  text-align:center;
+}
+h1{margin:10px;font-size:28px}
+small{opacity:.7}
+
+button{
+  padding:18px 34px;
+  margin:12px;
+  font-size:20px;
+  border:none;
+  border-radius:18px;
+  font-weight:bold;
+}
+#normal{background:#facc15}
+#lucky{background:#22c55e}
+#gachaBtn{background:#38bdf8}
+#switchBtn{background:#ef4444}
+
+.card{
+  width:320px;
+  height:460px;
+  margin:20px auto;
+  perspective:1200px;
+  display:none;
+}
+.inner{
+  width:100%;
+  height:100%;
+  transition:transform 1.2s;
+  transform-style:preserve-3d;
+}
+.open .inner{transform:rotateY(180deg)}
+.face{
+  position:absolute;
+  inset:0;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  backface-visibility:hidden;
+  font-size:34px;
+  font-weight:bold;
+}
+.front{background:#111827;font-size:56px}
+.back{transform:rotateY(180deg)}
+
+.scarlet{background:#dc2626}
+.gf{background:#2563eb}
+.mitos{background:#7c3aed}
+.encan{background:#16a34a}
+.tumbal{background:#f97316}
+.zonk{background:#374151}
+</style>
+</head>
+
+<body>
+
+<h1>🎴 SIMULASI GACHA</h1>
+<small>Tanpa uang • Hiburan • Bukan perjudian</small>
+
+<div id="modeSelect">
+  <p style="font-size:22px">Pilih Mode:</p>
+  <button id="normal" onclick="setMode('normal')">MODE NORMAL</button>
+  <button id="lucky" onclick="setMode('lucky')">MODE LUCKY</button>
+</div>
+
+<div id="controls" style="display:none">
+  <button id="gachaBtn" onclick="gacha()">GACHA</button>
+  <button id="switchBtn" onclick="resetMode()">GANTI MODE</button>
+</div>
+
+<div id="card" class="card">
+  <div class="inner">
+    <div class="face front">?</div>
+    <div id="back" class="face back"></div>
+  </div>
+</div>
+
+<script>
+let mode="";
+let animating=false;
+let lastResult="";
+let sameCount=0;
+
+function setMode(m){
+  mode=m;
+  document.getElementById("modeSelect").style.display="none";
+  document.getElementById("controls").style.display="block";
+}
+
+function resetMode(){
+  mode="";
+  animating=false;
+  lastResult="";
+  sameCount=0;
+  document.getElementById("controls").style.display="none";
+  document.getElementById("modeSelect").style.display="block";
+  const card=document.getElementById("card");
+  card.style.display="none";
+  card.classList.remove("open");
+}
+
+function randomPick(arr){
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+
+function buildPool(){
+  if(mode==="normal"){
+    return [
+      ...Array(1).fill("scarlet"),
+      ...Array(3).fill("gf"),
+      ...Array(10).fill("mitos"),
+      ...Array(15).fill("encan"),
+      ...Array(6).fill("tumbal"),
+      ...Array(65).fill("zonk")
+    ];
+  }else{
+    return [
+      ...Array(1).fill("scarlet"),
+      ...Array(4).fill("gf"),
+      ...Array(20).fill("mitos"),
+      ...Array(35).fill("encan"),
+      ...Array(40).fill("tumbal")
+    ];
+  }
+}
+
+function gacha(){
+  if(animating) return;
+  animating=true;
+
+  const card=document.getElementById("card");
+  const back=document.getElementById("back");
+  const btn=document.getElementById("gachaBtn");
+
+  btn.disabled=true;
+  card.style.display="block";
+  card.classList.remove("open");
+
+  setTimeout(()=>{
+    let pool=buildPool();
+    let result=randomPick(pool);
+
+    // ✅ ANTI NGESTACK YANG BENAR
+    if(result===lastResult){
+      sameCount++;
+      if(sameCount>=3){
+        do{
+          result=randomPick(pool);
+        }while(result===lastResult);
+        sameCount=1;
+      }
+    }else{
+      lastResult=result;
+      sameCount=1;
+    }
+
+    back.className="face back "+result;
+    back.innerText=result.toUpperCase();
+    card.classList.add("open");
+
+    // ⏱️ PASTI 5 DETIK
+    setTimeout(()=>{
+      card.classList.remove("open");
+      animating=false;
+      btn.disabled=false;
+    },5000);
+
+  },300);
+}
+
+// fullscreen hp
+document.body.addEventListener("click",()=>{
+  document.documentElement.requestFullscreen?.();
+},{once:true});
+</script>
+
+</body>
+</html>
